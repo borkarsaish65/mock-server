@@ -1,0 +1,12 @@
+{
+  "name": "saathi-mock-app",
+  "version": "1.0.0",
+  "description": "Minimal Express mock app for testing the saathi CI/CD pipeline",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
