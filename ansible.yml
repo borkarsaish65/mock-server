@@ -1,0 +1,40 @@
+---
+- name: Deploy saathi-mock-app
+  hosts: saathi
+  become: false
+  vars:
+    repo_url: "https://github.com/borkarsaish65/mock-server.git"
+    app_dir: "/home/saish/saathi-mock-app"
+    pm2_app_name: "saathi-mock-app"
+    gitBranch: "main"
+
+  tasks:
+    - name: Clone or update saathi-mock-app repo
+      ansible.builtin.git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: "{{ gitBranch }}"
+        force: true
+
+    - name: Install npm dependencies
+      ansible.builtin.command:
+        cmd: npm install
+        chdir: "{{ app_dir }}"
+      register: npm_install_result
+      changed_when: "'up to date' not in npm_install_result.stdout"
+
+    - name: Stop existing pm2 process if running
+      ansible.builtin.command:
+        cmd: "pm2 stop {{ pm2_app_name }}"
+      register: pm2_stop_result
+      failed_when: false
+      changed_when: pm2_stop_result.rc == 0
+
+    - name: Start app with pm2
+      ansible.builtin.command:
+        cmd: "pm2 start server.js --name {{ pm2_app_name }}"
+        chdir: "{{ app_dir }}"
+
+    - name: Save pm2 process list
+      ansible.builtin.command:
+        cmd: pm2 save
