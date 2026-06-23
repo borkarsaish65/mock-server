@@ -17,26 +17,25 @@
         force: true
 
     - name: Install npm dependencies
-      ansible.builtin.shell:
-        cmd: "source ~/.bashrc && cd {{ app_dir }} && npm install"
-        executable: /bin/bash
+      ansible.builtin.shell: "cd {{ app_dir }} && /usr/bin/npm install"
       register: npm_install_result
-      changed_when: "'up to date' not in npm_install_result.stdout"
+
+    - name: Show npm install output
+      debug:
+        var: npm_install_result
 
     - name: Stop existing pm2 process if running
-      ansible.builtin.shell:
-        cmd: "source ~/.bashrc && pm2 stop {{ pm2_app_name }}"
-        executable: /bin/bash
+      ansible.builtin.shell: "pm2 stop {{ pm2_app_name }}"
       register: pm2_stop_result
-      failed_when: false
-      changed_when: pm2_stop_result.rc == 0
+      ignore_errors: true
 
     - name: Start app with pm2
-      ansible.builtin.shell:
-        cmd: "source ~/.bashrc && cd {{ app_dir }} && pm2 start server.js --name {{ pm2_app_name }}"
-        executable: /bin/bash
+      ansible.builtin.shell: "cd {{ app_dir }} && pm2 start server.js --name {{ pm2_app_name }}"
+      register: pm2_start_result
+
+    - name: Show pm2 start output
+      debug:
+        var: pm2_start_result
 
     - name: Save pm2 process list
-      ansible.builtin.shell:
-        cmd: "source ~/.bashrc && pm2 save"
-        executable: /bin/bash
+      ansible.builtin.shell: "pm2 save"
